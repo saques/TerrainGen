@@ -53,30 +53,30 @@ public class DiamondSquareMatrix {
 		matrix.get(i).add(j,val);
 	}
 	/**
-	 * @param val
-	 * @return A amount sized list with the coordinates of the
-	 * centres of the sub-squares
+	 * @param nstep The current step number
+	 * @return A list with the coordinates of the
+	 * centres of the sub-squares for the current step
 	 */
-	private Set<Vector2> subSquares(int val){
-		if (val == 1){
+	public Set<Vector2> subSquares(int nstep){
+		if (nstep <0 || nstep >= exponent){
+			throw new IllegalArgumentException("Invalid step number");
+		}
+		if (nstep == 0){
 			Set<Vector2> r = new HashSet<Vector2>() ;
 			r.add(new Vector2((int)(dim/2),(int)(dim/2)));
 			return r;
 		}
+		int nsquares = (int) Math.pow(4, nstep) ;
 		int q ; //Squares in a row
-		double tmp ;
-		if ((tmp =(Math.log(val)/Math.log(2)))- Math.floor(tmp) != 0 ){
-			throw new IllegalArgumentException("Illegal amount of squares") ;
-		}
-		Set<Vector2> ans = new HashSet<Vector2>(val) ;
-		q = (int) tmp ;
+		q = (int) (Math.log(nsquares)/Math.log(2));
+		Set<Vector2> ans = new HashSet<Vector2>(nsquares) ;
 		int side ; //Side of each square
-		side = dim + (q-1)/ q ;
+		side = ((dim%q)*q+dim)/q ;
 		int c ; // Centre of the first square from the upper left corner
-		c = side % 2 ;
-		for (int i = 0 ; i<val ; i++){
-			for (int j = 0 ; j<val ; j++){
-				ans.add(new Vector2(c+i*side,c+j*side));
+		c = side / 2 ;
+		for (int i = 0 ; i<q ; i++){
+			for (int j = 0 ; j<q ; j++){
+				ans.add(new Vector2(c+i*(side-1),c+j*(side-1)));
 			}
 		}
 		return ans ;
@@ -100,11 +100,23 @@ public class DiamondSquareMatrix {
 	private Set<Vector2> diamondStep(int nstep) {
 		Random r = new Random() ;
 		int tmp = r.nextInt() ;
-		int prevRandom = (int) (tmp*Math.signum(tmp));
-		int squares = (int) Math.pow(4, nstep) ;
+		int prevRandom = (int) (tmp*Math.signum(tmp));;
+		
+		// This is horrible, should be extracted to a method
+		int nsquares = (int) Math.pow(4, nstep) ;
+		int q ; //Squares in a row
+		int side ; //Side of each square
+		if (nstep == 0) {
+			q = 1 ;
+			side = dim/2 ;
+		} else {
+			q = (int) (Math.log(nsquares)/Math.log(2));
+			side = ((dim%q)*q+dim)/q ;
+		}
 		int dist ; //The distance to the corners to average
-		dist = dim /(2+nstep);
-		Set<Vector2> centres = subSquares(squares);
+		dist = side/2;
+		
+		Set<Vector2> centres = subSquares(nstep);
 		for(Vector2 v : centres){
 			int ans = 0 ;
 			ans += get((int)(v.x)-dist,(int)(v.y)-dist) ;
@@ -121,8 +133,21 @@ public class DiamondSquareMatrix {
 		Random r = new Random() ;
 		int tmp = r.nextInt() ;
 		int prevRandom = (int) (tmp*Math.signum(tmp));
+		
+		// This is horrible, should be extracted to a method
+		int nsquares = (int) Math.pow(4, nstep) ;
+		int q ; //Squares in a row
+		int side ; //Side of each square
+		if (nstep == 0) {
+			q = 1 ;
+			side = dim/2 ;
+		} else {
+			q = (int) (Math.log(nsquares)/Math.log(2));
+			side = ((dim%q)*q+dim)/q ;
+		}
 		int dist ; //The distance to the corners to average
-		dist = dim /(2+nstep);
+		dist = side/2;
+		
 		Set<Vector2> diamonds = new HashSet<Vector2>() ;
 		for(Vector2 v : squares){
 			diamonds.add(new Vector2((int)(v.x)-dist,(int)(v.y)));
