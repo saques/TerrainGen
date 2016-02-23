@@ -1,4 +1,4 @@
-package com.mygdx.terrain;
+package com.mygdx.vc;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
