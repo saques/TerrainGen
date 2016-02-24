@@ -1,12 +1,14 @@
 package model.math;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.RandomXS128;
+
 /**
  * An utility class for performing the
  * Diamond Square Algorithm for procedural
@@ -14,7 +16,7 @@ import com.badlogic.gdx.math.Vector2;
  * @author saques
  */
 public class DiamondSquareMatrix {
-	
+	private static final int MAX_HEIGHT = 256 ;
 	private List<List<Integer>> matrix ;
 	private int dim ;
 	private int exponent ;
@@ -34,7 +36,7 @@ public class DiamondSquareMatrix {
 		for (int i=0 ; i<dim ; i++){
 			matrix.add(i, new ArrayList<Integer>(dim));
 			for (int j=0;j<dim; j++){
-				matrix.get(i).add(j, 0);
+				matrix.get(i).add(0);
 			}
 		}
 	}
@@ -50,33 +52,33 @@ public class DiamondSquareMatrix {
 		if (i<0 || i>dim || j<0 || j>dim){
 			throw new IllegalArgumentException("Wrong indices");
 		}
-		matrix.get(i).add(j,val);
+		matrix.get(i).set(j, val);
 	}
 	/**
 	 * @param nstep The current step number
 	 * @return A list with the coordinates of the
 	 * centres of the sub-squares for the current step
 	 */
-	public Set<Vector2> subSquares(int nstep){
+	public Set<Point> subSquares(int nstep){
 		if (nstep <0 || nstep >= exponent){
 			throw new IllegalArgumentException("Invalid step number");
 		}
 		if (nstep == 0){
-			Set<Vector2> r = new HashSet<Vector2>() ;
-			r.add(new Vector2((int)(dim/2),(int)(dim/2)));
+			Set<Point> r = new HashSet<Point>() ;
+			r.add(new Point(dim/2,dim/2));
 			return r;
 		}
 		int nsquares = (int) Math.pow(4, nstep) ;
 		int q ; //Squares in a row
-		q = (int) (Math.log(nsquares)/Math.log(2));
-		Set<Vector2> ans = new HashSet<Vector2>(nsquares) ;
+		q = (int) Math.sqrt(nsquares);
+		Set<Point> ans = new HashSet<Point>(nsquares) ;
 		int side ; //Side of each square
-		side = ((dim%q)*q+dim)/q ;
+		side = (dim+(q-1))/q ;
 		int c ; // Centre of the first square from the upper left corner
 		c = side / 2 ;
 		for (int i = 0 ; i<q ; i++){
 			for (int j = 0 ; j<q ; j++){
-				ans.add(new Vector2(c+i*(side-1),c+j*(side-1)));
+				ans.add(new Point(c+i*(side-1),c+j*(side-1)));
 			}
 		}
 		return ans ;
@@ -94,100 +96,96 @@ public class DiamondSquareMatrix {
 		set(0,dim-1,s01);
 		set(dim-1,0,s10);
 		set(dim-1,dim-1,s11);
-		return diamondSquareRec(0) ;
+		
+		for (int nstep = 0 ; nstep < exponent ; nstep ++){
+			squareStep(diamondStep(nstep),nstep);
+		}
+		return this;
 	}
 	
-	private Set<Vector2> diamondStep(int nstep) {
-		Random r = new Random() ;
+	private Set<Point> diamondStep(int nstep) {
+		RandomXS128 r = new RandomXS128() ;
 		int tmp = r.nextInt() ;
-		int prevRandom = (int) (tmp*Math.signum(tmp));;
+		int prevRandom = (int) (tmp*Math.signum(tmp)) % MAX_HEIGHT + 1;
 		
 		// This is horrible, should be extracted to a method
 		int nsquares = (int) Math.pow(4, nstep) ;
 		int q ; //Squares in a row
-		int side ; //Side of each square
+		int side ; //Dim of the side of each subsquare
 		if (nstep == 0) {
 			q = 1 ;
-			side = dim/2 ;
+			side = dim ;
 		} else {
-			q = (int) (Math.log(nsquares)/Math.log(2));
-			side = ((dim%q)*q+dim)/q ;
+			q = (int) Math.sqrt(nsquares);
+			side = (dim+(q-1))/q ;
 		}
 		int dist ; //The distance to the corners to average
 		dist = side/2;
 		
-		Set<Vector2> centres = subSquares(nstep);
-		for(Vector2 v : centres){
+		Set<Point> centres = subSquares(nstep);
+		for(Point v : centres){
 			int ans = 0 ;
-			ans += get((int)(v.x)-dist,(int)(v.y)-dist) ;
-			ans += get((int)(v.x)-dist,(int)(v.y)+dist) ;
-			ans += get((int)(v.x)+dist,(int)(v.y)-dist) ;
-			ans += get((int)(v.x)+dist,(int)(v.y)+dist) ;
-			set((int)(v.x),(int)(v.y),(ans)/4 + prevRandom) ;
-			prevRandom = r.nextInt(prevRandom) ;
+			ans += get(v.x-dist,v.y-dist) ;
+			ans += get(v.x-dist,v.y+dist) ;
+			ans += get(v.x+dist,v.y-dist) ;
+			ans += get(v.x+dist,v.y+dist) ;
+			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
+			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
 		return centres ;
 	}
 	
-	private void squareStep(Set<Vector2> squares,int nstep){
-		Random r = new Random() ;
+	private void squareStep(Set<Point> squares,int nstep){
+		RandomXS128 r = new RandomXS128() ;
 		int tmp = r.nextInt() ;
-		int prevRandom = (int) (tmp*Math.signum(tmp));
+		int prevRandom = (int) (tmp*Math.signum(tmp)) % MAX_HEIGHT  + 1;
 		
 		// This is horrible, should be extracted to a method
 		int nsquares = (int) Math.pow(4, nstep) ;
 		int q ; //Squares in a row
-		int side ; //Side of each square
+		int side ; //Dim of the side of each subsquare
 		if (nstep == 0) {
 			q = 1 ;
-			side = dim/2 ;
+			side = dim ;
 		} else {
-			q = (int) (Math.log(nsquares)/Math.log(2));
-			side = ((dim%q)*q+dim)/q ;
+			q = (int) Math.sqrt(nsquares);
+			side = (dim+(q-1))/q ;
 		}
 		int dist ; //The distance to the corners to average
 		dist = side/2;
 		
-		Set<Vector2> diamonds = new HashSet<Vector2>() ;
-		for(Vector2 v : squares){
-			diamonds.add(new Vector2((int)(v.x)-dist,(int)(v.y)));
-			diamonds.add(new Vector2((int)(v.x)+dist,(int)(v.y)));
-			diamonds.add(new Vector2((int)(v.x),(int)(v.y)-dist));
-			diamonds.add(new Vector2((int)(v.x),(int)(v.y)+dist));
+		Set<Point> diamonds = new HashSet<Point>() ;
+		for(Point v : squares){
+			diamonds.add(new Point(v.x-dist,v.y));
+			diamonds.add(new Point(v.x+dist,v.y));
+			diamonds.add(new Point(v.x,v.y-dist));
+			diamonds.add(new Point(v.x,v.y+dist));
 		}
-		for(Vector2 v : diamonds){
+		for(Point v : diamonds){
 			int ans=0;
 			try{
-				ans += get((int)(v.x)-dist,(int)(v.y)) ;
-			} catch (IllegalArgumentException e){
+				ans += get(v.x-dist,v.y) ;
+			} catch (Exception e){
 				
 			}
 			try {
-				ans += get((int)(v.x)+dist,(int)(v.y)) ;
-			} catch (IllegalArgumentException e){
+				ans += get(v.x+dist,v.y) ;
+			} catch (Exception e){
 				
 			}
 			try {
-				ans += get((int)(v.x),(int)(v.y)-dist) ;
-			} catch (IllegalArgumentException e){
+				ans += get(v.x,v.y-dist) ;
+			} catch (Exception e){
 				
 			}
 			try {
-				ans += get((int)(v.x),(int)(v.y)+dist) ;
-			} catch (IllegalArgumentException e){
+				ans += get(v.x,v.y+dist) ;
+			} catch (Exception e){
 				
 			}
-			set((int)(v.x),(int)(v.y),(ans)/4 + prevRandom) ;
-			prevRandom = r.nextInt(prevRandom) ;
+			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
+			prevRandom = r.nextInt(prevRandom) % MAX_HEIGHT + 1 ;
 		}
-	}
-	
-	private DiamondSquareMatrix diamondSquareRec(int nstep){
-		if (nstep == (exponent - 1) ){
-			return this ;
-		}
-		squareStep(diamondStep(nstep),nstep);
-		return diamondSquareRec(nstep+1);
 	}
 	
 	public String toString(){
