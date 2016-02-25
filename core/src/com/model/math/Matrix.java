@@ -9,8 +9,8 @@ import java.util.List;
  * @author asaques
  *
  */
-public abstract class Matrix {
-	private List<List<Integer>> matrix ;
+public class Matrix<N> {
+	private List<List<N>> matrix ;
 	private int dimX ;
 	private int dimY ;
 	
@@ -23,14 +23,14 @@ public abstract class Matrix {
 		if (dimX<0 || dimY<0){
 			throw new IllegalArgumentException("Illegal dimension");
 		}
-		matrix = new ArrayList<List<Integer>>(dimX);
+		matrix = new ArrayList<List<N>>(dimX);
 		this.dimX = dimX ;
 		this.dimY = dimY ;
 		for (int i=0 ; i<dimX ; i++){
-			List<Integer> nlist = new ArrayList<Integer>(dimY) ;
+			List<N> nlist = new ArrayList<N>(dimY) ;
 			matrix.add(i,nlist);
 			for (int j=0;j<dimY; j++){
-				nlist.add(0);
+				nlist.add(null);
 			}
 		}
 	}
@@ -43,14 +43,14 @@ public abstract class Matrix {
 		return dimY;
 	}
 	
-	public Integer get(int i,int j){
+	public N get(int i,int j){
 		if (i<0 || i>dimX || j<0 || j>dimY){
 			throw new IllegalArgumentException("Wrong indices");
 		}
 		return matrix.get(i).get(j) ;
 	}
 	
-	public void set(int i,int j,int val){
+	public void set(int i,int j,N val){
 		if (i<0 || i>dimX || j<0 || j>dimY){
 			throw new IllegalArgumentException("Wrong indices");
 		}
@@ -59,7 +59,7 @@ public abstract class Matrix {
 	
 	public String toString(){
 		String s = "";
-		for (List<Integer> l : matrix){
+		for (List<N> l : matrix){
 			s+=l.toString()+"\n" ;
 		}
 		return s ;

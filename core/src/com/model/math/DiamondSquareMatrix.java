@@ -1,9 +1,7 @@
 package com.model.math;
 
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.math.Vector3;
@@ -16,7 +14,7 @@ import com.model.map.Chunk;
  * terrain generation
  * @author saques
  */
-public class DiamondSquareMatrix extends Matrix {
+public class DiamondSquareMatrix extends Matrix<Integer> {
 	private static final int MAX_HEIGHT = 256 ;
 	private int exponent ;
 	private boolean performed ;
@@ -170,7 +168,7 @@ public class DiamondSquareMatrix extends Matrix {
 	 * @param exp The exponent
 	 * @return A list with the chunks
 	 */
-	public List<Chunk> splitIntoChunks(int exp){
+	public Matrix<Chunk> splitIntoChunks(int exp){
 		if (!performed){
 			throw new AlgorithmNotPerformedException();
 		}
@@ -182,9 +180,11 @@ public class DiamondSquareMatrix extends Matrix {
 		q = (int)Math.sqrt(nchunks);
 		int side ; //Side of each chunk
 		side = (dimX()-1)/q ;
-		List<Chunk> ans = new ArrayList<Chunk>(nchunks);
-		for (int i=0;i<nchunks;i++){
-			ans.add(new Chunk(side));
+		Matrix<Chunk> ans = new Matrix<Chunk>(q,q);
+		for (int i=0;i<q;i++){
+			for(int j=0;j<q;j++){
+			ans.set(i,j,new Chunk(side));
+			}
 		}
 		for (int i=0;i<dimX()-1;i++){
 			for (int j=0;j<dimX()-1;j++){
@@ -197,7 +197,7 @@ public class DiamondSquareMatrix extends Matrix {
 				Triangle t1,t2;
 				t1 = new Triangle(c1,c2,c3);
 				t2 = new Triangle(c2,c3,c4);
-				Chunk c = ans.get((i/side)+((j/side))*2);
+				Chunk c = ans.get(i/side,j/side);
 				c.addTriangle(t1);
 				c.addTriangle(t2);
 			}
