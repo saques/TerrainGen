@@ -60,4 +60,7 @@ public class Chunk {
 	public int getSize(){
 		return size ;
 	}
+	public int getAdded(){
+		return added;
+	}
 }

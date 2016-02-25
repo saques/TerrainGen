@@ -1,9 +1,14 @@
 package com.model.math;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import com.badlogic.gdx.math.RandomXS128;
+import com.badlogic.gdx.math.Vector3;
+import com.model.exception.AlgorithmNotPerformedException;
+import com.model.map.Chunk;
 
 /**
  * A Matrix with all the behaviour needed for
@@ -28,35 +33,6 @@ public class DiamondSquareMatrix extends Matrix {
 		this.performed = false ;
 	}
 	
-	/**
-	 * @param nstep The current step number
-	 * @return A list with the coordinates of the
-	 * centres of the sub-squares for the current step
-	 */
-	private Set<Point> subSquares(int nstep){
-		if (nstep <0 || nstep >= exponent){
-			throw new IllegalArgumentException("Invalid step number");
-		}
-		if (nstep == 0){
-			Set<Point> r = new HashSet<Point>() ;
-			r.add(new Point(dimX()/2,dimX()/2));
-			return r;
-		}
-		int nsquares = (int) Math.pow(4, nstep) ;
-		int q ; //Squares in a row
-		q = (int) Math.sqrt(nsquares);
-		Set<Point> ans = new HashSet<Point>(nsquares) ;
-		int side ; //Side of each square
-		side = (dimX()+(q-1))/q ;
-		int c ; // Centre of the first square from the upper left corner
-		c = side / 2 ;
-		for (int i = 0 ; i<q ; i++){
-			for (int j = 0 ; j<q ; j++){
-				ans.add(new Point(c+i*(side-1),c+j*(side-1)));
-			}
-		}
-		return ans ;
-	}
 	/**
 	 * Perform the Diamond-Square algorithm on this matrix
 	 * @param s00 Upper left seed
@@ -92,7 +68,43 @@ public class DiamondSquareMatrix extends Matrix {
 		performed = true ;
 		return this;
 	}
-	
+	/**
+	 * @param nstep The current step number
+	 * @return A list with the coordinates of the
+	 * centres of the sub-squares for the current step
+	 */
+	private Set<Point> subSquares(int nstep){
+		if (nstep <0 || nstep >= exponent){
+			throw new IllegalArgumentException("Invalid step number");
+		}
+		if (nstep == 0){
+			Set<Point> r = new HashSet<Point>() ;
+			r.add(new Point(dimX()/2,dimX()/2));
+			return r;
+		}
+		int nsquares = (int) Math.pow(4, nstep) ;
+		int q ; //Squares in a row
+		q = (int) Math.sqrt(nsquares);
+		Set<Point> ans = new HashSet<Point>(nsquares) ;
+		int side ; //Side of each square
+		side = (dimX()+(q-1))/q ;
+		int c ; // Centre of the first square from the upper left corner
+		c = side / 2 ;
+		for (int i = 0 ; i<q ; i++){
+			for (int j = 0 ; j<q ; j++){
+				ans.add(new Point(c+i*(side-1),c+j*(side-1)));
+			}
+		}
+		return ans ;
+	}
+	/**
+	 * Performs the diamond step for the given
+	 * step number
+	 * @param squares The subSquares for this step
+	 * @param nstep The subSquares for this step
+	 * @param dist The distance from the centre of each
+	 * subSquare to its corners
+	 */
 	private void diamondStep(Set<Point> squares,int nstep,int dist) {
 		RandomXS128 r = new RandomXS128() ;
 		int tmp = r.nextInt() ;
@@ -107,7 +119,14 @@ public class DiamondSquareMatrix extends Matrix {
 			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
 	}
-	
+	/**
+	 * Performs the square step for the given 
+	 * step number
+	 * @param squares The subSquares for this step
+	 * @param nstep The subSquares for this step
+	 * @param dist The distance from the centre of each
+	 * diamond to its corners
+	 */
 	private void squareStep(Set<Point> squares,int nstep,int dist){
 		RandomXS128 r = new RandomXS128() ;
 		int tmp = r.nextInt() ;
@@ -145,5 +164,44 @@ public class DiamondSquareMatrix extends Matrix {
 			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
 			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
+	}
+	/**
+	 * Splits this matrix into Math.pow(4,exponent) chunks
+	 * @param exp The exponent
+	 * @return A list with the chunks
+	 */
+	public List<Chunk> splitIntoChunks(int exp){
+		if (!performed){
+			throw new AlgorithmNotPerformedException();
+		}
+		if (exp<0 || exp >exponent){
+			throw new IllegalArgumentException("Illegal exponent");
+		}
+		int nchunks = (int)Math.pow(4, exp);
+		int q ; //Chunks in a row
+		q = (int)Math.sqrt(nchunks);
+		int side ; //Side of each chunk
+		side = (dimX()-1)/q ;
+		List<Chunk> ans = new ArrayList<Chunk>(nchunks);
+		for (int i=0;i<nchunks;i++){
+			ans.add(new Chunk(side));
+		}
+		for (int i=0;i<dimX()-1;i++){
+			for (int j=0;j<dimX()-1;j++){
+				//The vertices of the two triangles to add
+				Vector3 c1,c2,c3,c4;
+				c1 = new Vector3(i,j,get(i,j));
+				c2 = new Vector3(i,j+1,get(i,j+1));
+				c3 = new Vector3(i+1,j,get(i+1,j));
+				c4 = new Vector3(i+1,j+1,get(i+1,j+1));
+				Triangle t1,t2;
+				t1 = new Triangle(c1,c2,c3);
+				t2 = new Triangle(c2,c3,c4);
+				Chunk c = ans.get((i/side)+((j/side))*2);
+				c.addTriangle(t1);
+				c.addTriangle(t2);
+			}
+		}
+		return ans;
 	}
 }
