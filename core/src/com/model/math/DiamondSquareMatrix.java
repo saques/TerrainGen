@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.RandomXS128;
 public class DiamondSquareMatrix extends Matrix {
 	private static final int MAX_HEIGHT = 256 ;
 	private int exponent ;
+	private boolean performed ;
 	
 	/**
 	 * Creates a square matrix with a dimension of
@@ -24,6 +25,7 @@ public class DiamondSquareMatrix extends Matrix {
 		super((int)Math.pow(2, exponent)+1,
 			  (int)Math.pow(2, exponent)+1) ;
 		this.exponent = exponent;
+		this.performed = false ;
 	}
 	
 	/**
@@ -83,18 +85,19 @@ public class DiamondSquareMatrix extends Matrix {
 			}
 			int dist ; //The distance to the corners to average
 			dist = side/2;
-			
-			squareStep(diamondStep(nstep,dist),nstep,dist);
+			Set<Point> squares = subSquares(nstep);
+			diamondStep(squares,nstep,dist);
+			squareStep(squares,nstep,dist);
 		}
+		performed = true ;
 		return this;
 	}
 	
-	private Set<Point> diamondStep(int nstep,int dist) {
+	private void diamondStep(Set<Point> squares,int nstep,int dist) {
 		RandomXS128 r = new RandomXS128() ;
 		int tmp = r.nextInt() ;
 		int prevRandom = (int) (tmp*Math.signum(tmp)) % MAX_HEIGHT + 1;
-		Set<Point> centres = subSquares(nstep);
-		for(Point v : centres){
+		for(Point v : squares){
 			int ans = 0 ;
 			ans += get(v.x-dist,v.y-dist) ;
 			ans += get(v.x-dist,v.y+dist) ;
@@ -103,7 +106,6 @@ public class DiamondSquareMatrix extends Matrix {
 			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
 			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
-		return centres ;
 	}
 	
 	private void squareStep(Set<Point> squares,int nstep,int dist){
