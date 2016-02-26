@@ -1,7 +1,11 @@
 package com.model.math;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import javax.naming.OperationNotSupportedException;
 
 /**
  * A matrix implementation for the Diamond Square
@@ -9,7 +13,7 @@ import java.util.List;
  * @author asaques
  *
  */
-public class Matrix<N> {
+public class Matrix<N> implements Iterable<N> {
 	private List<List<N>> matrix ;
 	private int dimX ;
 	private int dimY ;
@@ -50,7 +54,7 @@ public class Matrix<N> {
 		return matrix.get(i).get(j) ;
 	}
 	
-	public void set(int i,int j,N val){
+	protected void set(int i,int j,N val){
 		if (i<0 || i>dimX || j<0 || j>dimY){
 			throw new IllegalArgumentException("Wrong indices");
 		}
@@ -63,5 +67,55 @@ public class Matrix<N> {
 			s+=l.toString()+"\n" ;
 		}
 		return s ;
+	}
+
+	@Override
+	public Iterator<N> iterator() {
+		return new MatrixIterator(this.matrix);
+	}
+	
+	private class MatrixIterator implements Iterator<N>{
+		
+		private List<Iterator<N>> iterators ;
+		private int size ;
+		private int current ;
+		public MatrixIterator(List<List<N>> matrix) {
+			iterators = new ArrayList<Iterator<N>>();
+			for (List<N> l : matrix){
+				iterators.add(l.iterator());
+			}
+			this.size = matrix.size();
+			this.current = 0;
+		}
+		
+		@Override
+		public boolean hasNext() {
+			if (current>size){
+				return false ;
+			} else if (!iterators.get(current).hasNext()) {
+				current++;
+				return hasNext();
+			}
+			return iterators.get(current).hasNext();
+		}
+
+		@Override
+		public N next() {
+			if (!hasNext()){
+				throw new NoSuchElementException();
+			}
+			return iterators.get(current).next();
+		}
+
+		@Override
+		public void remove() {
+			try {
+				throw new OperationNotSupportedException();
+			} catch (OperationNotSupportedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 	}
 }
