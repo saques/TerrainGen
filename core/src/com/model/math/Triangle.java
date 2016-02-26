@@ -3,6 +3,7 @@ package com.model.math;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 
 /**
@@ -15,13 +16,17 @@ public class Triangle {
 	private Vector3 p1 ;
 	private Vector3 p2 ;
 	private Vector3 p3 ;
+	private Vector3 normal ;
 	private float avgHeight;
 	
 	public Triangle(Vector3 p1,Vector3 p2,Vector3 p3){
 		this.p1=p1;
 		this.p2=p2;
 		this.p3=p3;
-		avgHeight = (p1.z + p2.z + p3.z)/3 ;
+		Plane p = new Plane(p1,p2,p3);
+		this.normal = p.getNormal() ;
+		this.avgHeight = (p1.z + p2.z + p3.z)/3 ;
+		
 	}
 	public Triangle (List<Vector3> vertices){
 		if (vertices.size() != 3){
@@ -47,6 +52,11 @@ public class Triangle {
 	public Vector3 getp3(){
 		return p3;
 	}
+	
+	public Vector3 getNormal(){
+		return normal ;
+	}
+	
 	public List<Vector3> getVertices(){
 		List<Vector3> ans = new ArrayList<Vector3>(3);
 		ans.add(p1);

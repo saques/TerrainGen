@@ -90,7 +90,7 @@ public class Matrix<N> implements Iterable<N> {
 		
 		@Override
 		public boolean hasNext() {
-			if (current>size){
+			if (current>=size){
 				return false ;
 			} else if (!iterators.get(current).hasNext()) {
 				current++;
