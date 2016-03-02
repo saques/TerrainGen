@@ -1,6 +1,8 @@
 package com.mygdx.vc;
 
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -15,7 +17,9 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder.VertexInfo;
+import com.badlogic.gdx.graphics.g3d.utils.RenderableSorter;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.model.map.Chunk;
@@ -28,8 +32,8 @@ public class MainScreen implements Screen {
 	private Camera camera ;
 	private Viewport viewport ;
 	private World world ;
-	private Mesh mesh ;
-	private Renderable renderable ;
+	private List<Mesh> meshes = new LinkedList<Mesh>();
+	private List<Renderable> renderables = new LinkedList<Renderable>() ;
 	private CameraInputController camController ;
 	private ModelBatch batch ;
 	
@@ -46,11 +50,13 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(6,2,35,24,18,80);
+		world = new World(8,4,95,10,15,30);
+		
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
-		build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_LINES);
 		for (Chunk c : m){
+			Mesh ans ;
+			build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_TRIANGLES);
 			Set<Triangle> triangles = c.getTriangles();
 			for (Triangle t: triangles) {
 				VertexInfo p1,p2,p3 ;
@@ -63,15 +69,25 @@ public class MainScreen implements Screen {
 				p3.setPos(new Vector3(t.getp3())).setCol(getColor(t.getp3())).setNor(nor);
 				build.triangle(p1,p2,p3);
 			}
+			ans = build.end();
+			meshes.add(ans);
+			Renderable r = new Renderable();
+			r.meshPart.mesh=ans ;
+			r.meshPart.offset=0;
+			r.meshPart.size=ans.getNumVertices();
+			r.meshPart.primitiveType = GL20.GL_TRIANGLES;
+			renderables.add(r);
 		}
-		mesh = build.end();
 		
-		renderable = new Renderable();
-		renderable.meshPart.mesh=mesh;
-		renderable.meshPart.offset=0;
-		renderable.meshPart.size=mesh.getNumIndices();
-		renderable.meshPart.primitiveType=GL20.GL_LINES;
-		batch = new ModelBatch() ;
+		RenderableSorter sorter = new RenderableSorter() {
+			
+			@Override
+			public void sort(Camera camera, Array<Renderable> renderables) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		batch = new ModelBatch(sorter) ;
 		
 	}
 	
@@ -103,7 +119,9 @@ public class MainScreen implements Screen {
 	   	
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 	    batch.begin(camera);
-	    batch.render(renderable);
+	    for (Renderable r : renderables){
+	    	batch.render(r);
+	    }
 	    batch.end();
 	    camController.update();
 	    camera.update();
