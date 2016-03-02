@@ -46,7 +46,7 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(6,2,15,20,33,30);
+		world = new World(6,2,35,24,18,80);
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
 		build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_LINES);
@@ -56,11 +56,11 @@ public class MainScreen implements Screen {
 				VertexInfo p1,p2,p3 ;
 				Vector3 nor = t.getNormal();
 				p1 = new VertexInfo() ;
-				p1.setPos(t.getp1()).setCol(getColor(t.getp1())).setNor(nor);
+				p1.setPos(new Vector3(t.getp1())).setCol(getColor(t.getp1())).setNor(nor);
 				p2 = new VertexInfo() ;
-				p2.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(nor);
+				p2.setPos(new Vector3(t.getp2())).setCol(getColor(t.getp2())).setNor(nor);
 				p3 = new VertexInfo() ;
-				p3.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(nor);
+				p3.setPos(new Vector3(t.getp3())).setCol(getColor(t.getp3())).setNor(nor);
 				build.triangle(p1,p2,p3);
 			}
 		}

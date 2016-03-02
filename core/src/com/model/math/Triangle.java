@@ -36,7 +36,9 @@ public class Triangle {
 		this.p1 = vertices.get(0);
 		this.p2 = vertices.get(1);
 		this.p3 = vertices.get(2);
-		avgHeight = (p1.z + p2.z + p3.z)/3 ;
+		Plane p = new Plane(p1,p2,p3);
+		this.normal = p.getNormal() ;
+		this.avgHeight = (p1.z + p2.z + p3.z)/3 ;
 	}
 	
 	public float avgHeight(){

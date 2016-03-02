@@ -16,6 +16,8 @@ import com.model.map.Chunk;
  */
 public class DiamondSquareMatrix extends Matrix<Integer> {
 	private static final int MAX_HEIGHT = 100 ;
+	private static final float EPSILON = 20f ;
+	private static final float TOLERANCE = 1f ;
 	private int exponent ;
 	private boolean performed ;
 	
@@ -60,8 +62,9 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			int dist ; //The distance to the corners to average
 			dist = side/2;
 			Set<Point> squares = subSquares(nstep);
-			diamondStep(squares,nstep,dist);
-			squareStep(squares,nstep,dist);
+			int noise ;
+			noise = diamondStep(squares,nstep,dist);
+			squareStep(squares,nstep,dist,noise);
 		}
 		performed = true ;
 		return this;
@@ -102,20 +105,27 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	 * @param nstep The subSquares for this step
 	 * @param dist The distance from the centre of each
 	 * subSquare to its corners
+	 * @return The last noise generated
 	 */
-	private void diamondStep(Set<Point> squares,int nstep,int dist) {
+	private int diamondStep(Set<Point> squares,int nstep,int dist) {
 		RandomXS128 r = new RandomXS128() ;
-		int tmp = r.nextInt() ;
-		int prevRandom = (int) (tmp*Math.signum(tmp)) % MAX_HEIGHT + 1;
+		int prevRandom = r.nextInt(MAX_HEIGHT)+1;
 		for(Point v : squares){
 			int ans = 0 ;
 			ans += get(v.x-dist,v.y-dist) ;
 			ans += get(v.x-dist,v.y+dist) ;
 			ans += get(v.x+dist,v.y-dist) ;
 			ans += get(v.x+dist,v.y+dist) ;
-			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
+			int avg = (int)(ans/4);
+			int toAdd = (avg + prevRandom) % MAX_HEIGHT ;
+			if (exceedsTolerance(toAdd, avg)){
+				toAdd = avg ;
+				System.out.println(true);
+			}
+			set(v.x,v.y,toAdd) ;
 			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
+		return prevRandom;
 	}
 	/**
 	 * Performs the square step for the given 
@@ -123,12 +133,12 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	 * @param squares The subSquares for this step
 	 * @param nstep The subSquares for this step
 	 * @param dist The distance from the centre of each
+	 * @param noise The noise to start from
 	 * diamond to its corners
 	 */
-	private void squareStep(Set<Point> squares,int nstep,int dist){
+	private void squareStep(Set<Point> squares,int nstep,int dist,int noise){
 		RandomXS128 r = new RandomXS128() ;
-		int tmp = r.nextInt() ;
-		int prevRandom = (int) (tmp*Math.signum(tmp)) % MAX_HEIGHT  + 1;
+		int prevRandom = noise;
 		
 		Set<Point> diamonds = new HashSet<Point>() ;
 		for(Point v : squares){
@@ -139,30 +149,49 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		}
 		for(Point v : diamonds){
 			int ans=0;
+			int div = 4 ;
 			try{
 				ans += get(v.x-dist,v.y) ;
 			} catch (Exception e){
-				
+				div = 3;
 			}
 			try {
 				ans += get(v.x+dist,v.y) ;
 			} catch (Exception e){
-				
+				div = 3;
 			}
 			try {
 				ans += get(v.x,v.y-dist) ;
 			} catch (Exception e){
-				
+				div = 3;
 			}
 			try {
 				ans += get(v.x,v.y+dist) ;
 			} catch (Exception e){
-				
+				div = 3;
 			}
-			set(v.x,v.y,((ans)/4 + prevRandom)%MAX_HEIGHT) ;
+			int avg = (int)(ans/div);
+			int toAdd = (avg + prevRandom) % MAX_HEIGHT ;
+			if (exceedsTolerance(toAdd, avg)){
+				toAdd = avg ;
+				System.out.println(true);
+			}
+			set(v.x,v.y,toAdd) ;
 			prevRandom = r.nextInt(prevRandom)%MAX_HEIGHT + 1 ;
 		}
 	}
+	
+	private boolean exceedsTolerance(int v1,int v2){
+		float g,s;
+		if (v1>v2){
+			g=v1 ; s=v2 ;
+		} else {
+			g=v2 ; s=v1 ;
+		}
+		
+		return ((g-s)/EPSILON) > TOLERANCE ;
+	}
+	
 	/**
 	 * Splits this matrix into Math.pow(4,exponent) chunks
 	 * @param exp The exponent
