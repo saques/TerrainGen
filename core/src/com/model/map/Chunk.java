@@ -19,7 +19,6 @@ public class Chunk {
 					+ "and greater than zero");
 		}
 		this.size = size ;
-		//Each slot of a square contains two triangles
 		this.ntriangles = (size*size)*2 ;
 		this.triangles = new HashSet<Triangle>(ntriangles);
 	}
@@ -34,6 +33,7 @@ public class Chunk {
 		triangles.add(t);
 		added++;
 	}
+	
 	/**
 	 * This method filters the triangles in this Chunk
 	 * by height

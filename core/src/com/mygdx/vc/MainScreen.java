@@ -9,20 +9,14 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
-import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.Shader;
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.utils.DefaultTextureBinder;
+import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder.VertexInfo;
-import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.model.map.Chunk;
 import com.model.map.World;
@@ -36,45 +30,49 @@ public class MainScreen implements Screen {
 	private World world ;
 	private Mesh mesh ;
 	private Renderable renderable ;
-	private Shader shader ;
-	private RenderContext renderContext;
+	private CameraInputController camController ;
+	private ModelBatch batch ;
 	
 	public MainScreen() {	
-		camera = new PerspectiveCamera(70, Gdx.graphics.getWidth(), 
+		camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), 
 										   Gdx.graphics.getHeight());
-		camera.position.set(2f, 2f, 2f);
-	    camera.lookAt(0,0,0);
-	    camera.near = 1f;
-	    camera.far = 300f;
-	    camera.update();
-		viewport = new ExtendViewport(Gdx.graphics.getWidth(), 
-									  Gdx.graphics.getHeight(),camera);
-		world = new World(5,2,15,48,83,131);
+		camera.lookAt(new Vector3(10, 10, 0));
+		camera.direction.set(-1, -1, -1);
+		camera.position.set(100, 100, 100);
+		camera.near = 0f;
+		camera.far = 1000f;
+		camera.update();
+		viewport = new ScreenViewport(camera);
+		camController = new CameraInputController(camera);
+	    Gdx.input.setInputProcessor(camController);
 		
+		world = new World(6,2,15,20,33,30);
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
-		build.begin(new VertexAttributes(new VertexAttribute(Usage.Position, 3, "a_position"),
-										 new VertexAttribute(Usage.ColorPacked, 4, "a_color")),
-										 GL20.GL_TRIANGLES);
+		build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_LINES);
 		for (Chunk c : m){
 			Set<Triangle> triangles = c.getTriangles();
 			for (Triangle t: triangles) {
-				VertexInfo i1,i2,i3 ;
-				Vector3 normal = t.getNormal();
-				i1 = new VertexInfo().set(t.getp1(), normal, getColor(t.getp1()), new Vector2(1,1));
-				i2 = new VertexInfo().set(t.getp2(), normal, getColor(t.getp2()), new Vector2(1,1));
-				i3 = new VertexInfo().set(t.getp3(), normal, getColor(t.getp3()), new Vector2(1,1));
-				build.triangle(i1, i2, i3);
+				VertexInfo p1,p2,p3 ;
+				Vector3 nor = t.getNormal();
+				p1 = new VertexInfo() ;
+				p1.setPos(t.getp1()).setCol(getColor(t.getp1())).setNor(nor);
+				p2 = new VertexInfo() ;
+				p2.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(nor);
+				p3 = new VertexInfo() ;
+				p3.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(nor);
+				build.triangle(p1,p2,p3);
 			}
 		}
 		mesh = build.end();
 		
 		renderable = new Renderable();
-		renderable.material = new Material();
-		renderable.mesh = this.mesh ;
-		renderContext = new RenderContext(new DefaultTextureBinder(DefaultTextureBinder.WEIGHTED, 1));
-		shader = new DefaultShader(renderable);
-		shader.init();
+		renderable.meshPart.mesh=mesh;
+		renderable.meshPart.offset=0;
+		renderable.meshPart.size=mesh.getNumIndices();
+		renderable.meshPart.primitiveType=GL20.GL_LINES;
+		batch = new ModelBatch() ;
+		
 	}
 	
 	private Color getColor(Vector3 p){
@@ -98,27 +96,22 @@ public class MainScreen implements Screen {
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0.53f,0.80f,0.98f, 0);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);	
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-	    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-		renderContext.begin();
-	    shader.begin(camera, renderContext);
-	    shader.render(renderable);
-	    shader.end();
-	    renderContext.end();
+	   	
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+	    batch.begin(camera);
+	    batch.render(renderable);
+	    batch.end();
+	    camController.update();
 	    camera.update();
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		viewport.update(width, height, true);
-
+		viewport.update(width, height, false);
 	}
 
 	@Override
@@ -141,8 +134,6 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

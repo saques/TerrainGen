@@ -15,7 +15,7 @@ import com.model.map.Chunk;
  * @author saques
  */
 public class DiamondSquareMatrix extends Matrix<Integer> {
-	private static final int MAX_HEIGHT = 256 ;
+	private static final int MAX_HEIGHT = 100 ;
 	private int exponent ;
 	private boolean performed ;
 	
@@ -166,6 +166,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	/**
 	 * Splits this matrix into Math.pow(4,exponent) chunks
 	 * @param exp The exponent
+	 * @param factor The stretching factor
 	 * @return A list with the chunks
 	 */
 	public Matrix<Chunk> splitIntoChunks(int exp){
