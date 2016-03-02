@@ -16,7 +16,7 @@ import com.model.map.Chunk;
  */
 public class DiamondSquareMatrix extends Matrix<Integer> {
 	private static final int MAX_HEIGHT = 100 ;
-	private static final float EPSILON = 20f ;
+	private static final float EPSILON = 15f ;
 	private static final float TOLERANCE = 1f ;
 	private int exponent ;
 	private boolean performed ;
