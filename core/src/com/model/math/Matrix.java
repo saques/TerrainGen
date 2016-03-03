@@ -48,17 +48,24 @@ public class Matrix<N> implements Iterable<N> {
 	}
 	
 	public N get(int i,int j){
-		if (i<0 || i>dimX || j<0 || j>dimY){
+		if (outOfBounds(i, j)){
 			throw new IllegalArgumentException("Wrong indices");
 		}
 		return matrix.get(i).get(j) ;
 	}
 	
 	protected void set(int i,int j,N val){
-		if (i<0 || i>dimX || j<0 || j>dimY){
+		if (outOfBounds(i, j)){
 			throw new IllegalArgumentException("Wrong indices");
 		}
 		matrix.get(i).set(j, val);
+	}
+	
+	protected boolean outOfBounds(int i,int j){
+		if (i<0 || i>=dimX || j<0 || j>=dimY) {
+			return true ;
+		}
+		return false ;
 	}
 	
 	public String toString(){

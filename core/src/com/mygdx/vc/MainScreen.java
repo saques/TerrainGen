@@ -50,7 +50,7 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(8,4,95,10,15,30);
+		world = new World(8,4,15,38,89,26);
 		
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
@@ -67,7 +67,7 @@ public class MainScreen implements Screen {
 				p2.setPos(new Vector3(t.getp2())).setCol(getColor(t.getp2())).setNor(nor);
 				p3 = new VertexInfo() ;
 				p3.setPos(new Vector3(t.getp3())).setCol(getColor(t.getp3())).setNor(nor);
-				build.triangle(p1,p2,p3);
+				build.index(build.vertex(p1), build.vertex(p2), build.vertex(p3));
 			}
 			ans = build.end();
 			meshes.add(ans);
@@ -121,6 +121,7 @@ public class MainScreen implements Screen {
 	    batch.begin(camera);
 	    for (Renderable r : renderables){
 	    	batch.render(r);
+	    	batch.flush();
 	    }
 	    batch.end();
 	    camController.update();
