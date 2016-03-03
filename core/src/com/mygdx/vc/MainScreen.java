@@ -50,7 +50,7 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(8,4,15,38,89,26);
+		world = new World(9,5,180,5,24,98);
 		
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;

@@ -16,8 +16,10 @@ import com.model.map.Chunk;
  */
 public class DiamondSquareMatrix extends Matrix<Integer> {
 	private static final int MAX_HEIGHT = 256 ;
-	private static final float EPSILON = 32f ;
+	private static final int SMOOTHENING_RADIUS = 1 ;
 	private static final float TOLERANCE = 1f ;
+	private static final float REDUCTION_FACTOR = 0.75f ;
+	private float epsilon = 15f ;
 	private int exponent ;
 	private boolean performed ;
 	
@@ -31,6 +33,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			  (int)Math.pow(2, exponent)+1) ;
 		this.exponent = exponent;
 		this.performed = false ;
+		this.epsilon = 0.25f * MAX_HEIGHT ;
 	}
 	
 	/**
@@ -65,6 +68,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			int noise ;
 			noise = diamondStep(squares,nstep,dist);
 			squareStep(squares,nstep,dist,noise);
+			epsilon*=REDUCTION_FACTOR ;
 		}
 		performed = true ;
 		return this;
@@ -190,7 +194,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			g=v2 ; s=v1 ;
 		}
 		
-		return ((g-s)/EPSILON) > TOLERANCE ;
+		return ((g-s)/epsilon) > TOLERANCE ;
 	}
 	
 	private DiamondSquareMatrix smoothen(int radius){
@@ -233,14 +237,14 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	 * @param factor The stretching factor
 	 * @return A list with the chunks
 	 */
-	public Matrix<Chunk> splitIntoChunks(int exp,int radius){
+	public Matrix<Chunk> splitIntoChunks(int exp){
 		if (!performed){
 			throw new AlgorithmNotPerformedException();
 		}
 		if (exp<0 || exp >exponent){
 			throw new IllegalArgumentException("Illegal exponent");
 		}
-		DiamondSquareMatrix smoothened = smoothen(radius);
+		DiamondSquareMatrix smoothened = smoothen(SMOOTHENING_RADIUS);
 		int nchunks = (int)Math.pow(4, exp);
 		int q ; //Chunks in a row
 		q = (int)Math.sqrt(nchunks);

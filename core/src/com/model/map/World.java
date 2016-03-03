@@ -5,7 +5,6 @@ import com.model.math.Matrix;
 
 public class World {
 	private Matrix<Chunk> chunks ;
-	private static final int SMOOTHENING_RADIUS = 3 ;
 	
 	/**
 	 * Creates a new map with the given seeds
@@ -19,7 +18,7 @@ public class World {
 	public World(int exp,int cexp,int s00,int s01,int s10,int s11){
 		DiamondSquareMatrix m = new DiamondSquareMatrix(exp);
 		m.diamondSquare(s00, s01, s10, s11);
-		chunks = m.splitIntoChunks(cexp,SMOOTHENING_RADIUS) ;
+		chunks = m.splitIntoChunks(cexp) ;
 	}
 	
 	public Matrix<Chunk> getChunks(){
