@@ -72,8 +72,8 @@ public class MainScreen implements Screen {
 				p5.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(t.gett2().getNormal()) ;
 				p6 = new VertexInfo() ;
 				p6.setPos(t.getp4()).setCol(getColor(t.getp4())).setNor(t.gett2().getNormal()) ;
-				build.triangle(p1, p2, p3);	
-				build.triangle(p5, p4, p6);
+				build.triangle(p3, p2, p1);
+				build.triangle(p4, p5, p6);
 			}
 			
 			ans = build.end();
