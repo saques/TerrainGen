@@ -24,8 +24,8 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.model.map.Chunk;
 import com.model.map.World;
+import com.model.math.Cell;
 import com.model.math.Matrix;
-import com.model.math.Triangle;
 
 public class MainScreen implements Screen {
 	
@@ -50,35 +50,41 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(9,5,180,5,24,98);
+		world = new World(8,4,35,200,15,28);
 		
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
 		for (Chunk c : m){
 			Mesh ans ;
 			build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_TRIANGLES);
-			Set<Triangle> triangles = c.getTriangles();
-			for (Triangle t: triangles) {
-				VertexInfo p1,p2,p3 ;
-				Vector3 nor = t.getNormal();
+			Set<Cell> cells = c.getCells();
+			for (Cell t: cells) {
+				VertexInfo p1,p2,p3,p4,p5,p6 ;
 				p1 = new VertexInfo() ;
-				p1.setPos(new Vector3(t.getp1())).setCol(getColor(t.getp1())).setNor(nor);
+				p1.setPos(t.getp1()).setCol(getColor(t.getp1())).setNor(t.gett1().getNormal());
 				p2 = new VertexInfo() ;
-				p2.setPos(new Vector3(t.getp2())).setCol(getColor(t.getp2())).setNor(nor);
+				p2.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(t.gett1().getNormal());
 				p3 = new VertexInfo() ;
-				p3.setPos(new Vector3(t.getp3())).setCol(getColor(t.getp3())).setNor(nor);
-				build.index(build.vertex(p1), build.vertex(p2), build.vertex(p3));
+				p3.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(t.gett1().getNormal());
+				p4 = new VertexInfo() ;
+				p4.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(t.gett2().getNormal()) ;
+				p5 = new VertexInfo() ;
+				p5.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(t.gett2().getNormal()) ;
+				p6 = new VertexInfo() ;
+				p6.setPos(t.getp4()).setCol(getColor(t.getp4())).setNor(t.gett2().getNormal()) ;
+				build.triangle(p1, p2, p3);	
+				build.triangle(p5, p4, p6);
 			}
+			
 			ans = build.end();
 			meshes.add(ans);
 			Renderable r = new Renderable();
 			r.meshPart.mesh=ans ;
 			r.meshPart.offset=0;
-			r.meshPart.size=ans.getNumVertices();
+			r.meshPart.size=ans.getNumIndices();
 			r.meshPart.primitiveType = GL20.GL_TRIANGLES;
 			renderables.add(r);
 		}
-		
 		RenderableSorter sorter = new RenderableSorter() {
 			
 			@Override
@@ -121,7 +127,6 @@ public class MainScreen implements Screen {
 	    batch.begin(camera);
 	    for (Renderable r : renderables){
 	    	batch.render(r);
-	    	batch.flush();
 	    }
 	    batch.end();
 	    camController.update();

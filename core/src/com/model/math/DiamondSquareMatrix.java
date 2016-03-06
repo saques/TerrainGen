@@ -18,7 +18,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	private static final int MAX_HEIGHT = 256 ;
 	private static final int SMOOTHENING_RADIUS = 1 ;
 	private static final float TOLERANCE = 1f ;
-	private static final float REDUCTION_FACTOR = 0.75f ;
+	private static final float REDUCTION_FACTOR = 0.65f ;
 	private float epsilon = 15f ;
 	private int exponent ;
 	private boolean performed ;
@@ -264,12 +264,8 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 				c2 = new Vector3(i,j+1,smoothened.get(i,j+1));
 				c3 = new Vector3(i+1,j,smoothened.get(i+1,j));
 				c4 = new Vector3(i+1,j+1,smoothened.get(i+1,j+1));
-				Triangle t1,t2;
-				t1 = new Triangle(c1,c2,c3);
-				t2 = new Triangle(c2,c3,c4);
 				Chunk c = ans.get(i/side,j/side);
-				c.addTriangle(t1);
-				c.addTriangle(t2);
+				c.addCell(new Cell(c1, c2, c3, c4)) ;
 			}
 		}
 		return ans;
