@@ -14,41 +14,41 @@ import com.model.map.Chunk;
  * terrain generation
  * @author saques
  */
-public class DiamondSquareMatrix extends Matrix<Integer> {
+public class DiamondSquareAlgorithm  {
 	private static final int MAX_HEIGHT = 256 ;
 	private static final int SMOOTHENING_RADIUS = 1 ;
 	private static final float TOLERANCE = 1f ;
-	private static final float REDUCTION_FACTOR = 0.65f ;
+	private static final float REDUCTION_FACTOR = 0.6f ;
 	private float epsilon = 15f ;
 	private int exponent ;
 	private boolean performed ;
+	private Matrix<Integer> m ;
 	
 	/**
-	 * Creates a square matrix with a dimension of
-	 * pow(2,exponent)+1
+	 * Initializes all the fields needed to
+	 * perform the algorithm
 	 * @param exponent The exponent
-	 */
-	public DiamondSquareMatrix(int exponent){
-		super((int)Math.pow(2, exponent)+1,
-			  (int)Math.pow(2, exponent)+1) ;
-		this.exponent = exponent;
-		this.performed = false ;
-		this.epsilon = 0.25f * MAX_HEIGHT ;
-	}
-	
-	/**
-	 * Perform the Diamond-Square algorithm on this matrix
 	 * @param s00 Upper left seed
 	 * @param s01 Upper right seed
 	 * @param s10 Bottom left seed
 	 * @param s11 Bottom right seed
-	 * @return this matrix for chaining
 	 */
-	public DiamondSquareMatrix diamondSquare(int s00, int s01,int s10, int s11){
-		set(0,0,s00);
-		set(0,dimX()-1,s01);
-		set(dimX()-1,0,s10);
-		set(dimX()-1,dimX()-1,s11);
+	public DiamondSquareAlgorithm(int exponent,int s00, int s01,int s10, int s11){
+		this.exponent = exponent;
+		this.performed = false ;
+		this.epsilon = 0.25f * MAX_HEIGHT ;
+		this.m = new Matrix<Integer>((int)Math.pow(2, exponent)+1);
+		
+		m.set(0,0,s00);
+		m.set(0,m.dimX()-1,s01);
+		m.set(m.dimX()-1,0,s10);
+		m.set(m.dimX()-1,m.dimX()-1,s11);
+	}
+	
+	/**
+	 * Perform the Diamond-Square algorithm on this matrix
+	 */
+	public void diamondSquare(){
 		
 		for (int nstep = 0 ; nstep < exponent ; nstep ++){
 			
@@ -57,10 +57,10 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			int side ; //Dim of the side of each subsquare
 			if (nstep == 0) {
 				q = 1 ;
-				side = dimX() ;
+				side = m.dimX() ;
 			} else {
 				q = (int) Math.sqrt(nsquares);
-				side = (dimX()+(q-1))/q ;
+				side = (m.dimX()+(q-1))/q ;
 			}
 			int dist ; //The distance to the corners to average
 			dist = side/2;
@@ -71,7 +71,6 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			epsilon*=REDUCTION_FACTOR ;
 		}
 		performed = true ;
-		return this;
 	}
 	/**
 	 * @param nstep The current step number
@@ -84,7 +83,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		}
 		if (nstep == 0){
 			Set<Point> r = new HashSet<Point>() ;
-			r.add(new Point(dimX()/2,dimX()/2));
+			r.add(new Point(m.dimX()/2,m.dimX()/2));
 			return r;
 		}
 		int nsquares = (int) Math.pow(4, nstep) ;
@@ -92,7 +91,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		q = (int) Math.sqrt(nsquares);
 		Set<Point> ans = new HashSet<Point>(nsquares) ;
 		int side ; //Side of each square
-		side = (dimX()+(q-1))/q ;
+		side = (m.dimX()+(q-1))/q ;
 		int c ; // Centre of the first square from the upper left corner
 		c = side / 2 ;
 		for (int i = 0 ; i<q ; i++){
@@ -117,17 +116,17 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		int prevRandom = (int)(tmp*Math.signum(tmp));
 		for(Point v : squares){
 			int ans = 0 ;
-			ans += get(v.x-dist,v.y-dist) ;
-			ans += get(v.x-dist,v.y+dist) ;
-			ans += get(v.x+dist,v.y-dist) ;
-			ans += get(v.x+dist,v.y+dist) ;
+			ans += m.get(v.x-dist,v.y-dist) ;
+			ans += m.get(v.x-dist,v.y+dist) ;
+			ans += m.get(v.x+dist,v.y-dist) ;
+			ans += m.get(v.x+dist,v.y+dist) ;
 			int avg = (int)(ans/4);
 			int toAdd = (avg + prevRandom) % MAX_HEIGHT ;
 			if (exceedsTolerance(toAdd, avg)){
 				toAdd = avg ;
 				System.out.println(true);
 			}
-			set(v.x,v.y,toAdd) ;
+			m.set(v.x,v.y,toAdd) ;
 			prevRandom = r.nextInt(prevRandom)+1 ;
 		}
 		return prevRandom;
@@ -156,22 +155,22 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 			int ans=0;
 			int div = 4 ;
 			try{
-				ans += get(v.x-dist,v.y) ;
+				ans += m.get(v.x-dist,v.y) ;
 			} catch (Exception e){
 				div = 3;
 			}
 			try {
-				ans += get(v.x+dist,v.y) ;
+				ans += m.get(v.x+dist,v.y) ;
 			} catch (Exception e){
 				div = 3;
 			}
 			try {
-				ans += get(v.x,v.y-dist) ;
+				ans += m.get(v.x,v.y-dist) ;
 			} catch (Exception e){
 				div = 3;
 			}
 			try {
-				ans += get(v.x,v.y+dist) ;
+				ans += m.get(v.x,v.y+dist) ;
 			} catch (Exception e){
 				div = 3;
 			}
@@ -181,7 +180,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 				toAdd = avg ;
 				System.out.println(true);
 			}
-			set(v.x,v.y,toAdd) ;
+			m.set(v.x,v.y,toAdd) ;
 			prevRandom = r.nextInt(prevRandom)+ 1 ;
 		}
 	}
@@ -197,18 +196,18 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		return ((g-s)/epsilon) > TOLERANCE ;
 	}
 	
-	private DiamondSquareMatrix smoothen(int radius){
+	private Matrix<Integer> smoothen(int radius){
 		if (radius<0){
 			throw new IllegalArgumentException();
 		} else if (radius == 0){
-			return this ;
+			return m ;
 		}
-		DiamondSquareMatrix ans = new DiamondSquareMatrix(exponent);
+		Matrix<Integer> ans = new Matrix<Integer>((int)Math.pow(2, exponent)+1);
 		if (!performed){
 			throw new AlgorithmNotPerformedException();
 		}
-		for (int i=0; i<dimX(); i++){
-			for(int j=0;j<dimX();j++){
+		for (int i=0; i<m.dimX(); i++){
+			for(int j=0;j<m.dimX();j++){
 				ans.set(i, j, roundAvg(i, j));
 			}
 		}
@@ -221,8 +220,8 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		int count = 0 ;
 		for (int k = i-1 ; k<=i+1 ; k++){
 			for (int q = j-1 ; q<=j+1;q++){
-				if (!outOfBounds(k, q)){
-					ans += get(k, q) ;
+				if (!m.outOfBounds(k, q)){
+					ans += m.get(k, q) ;
 					count ++ ;
 				}
 			}
@@ -234,8 +233,7 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 	/**
 	 * Splits this matrix into Math.pow(4,exponent) chunks
 	 * @param exp The exponent
-	 * @param factor The stretching factor
-	 * @return A list with the chunks
+	 * @return A Matrix with the chunks
 	 */
 	public Matrix<Chunk> splitIntoChunks(int exp){
 		if (!performed){
@@ -244,20 +242,20 @@ public class DiamondSquareMatrix extends Matrix<Integer> {
 		if (exp<0 || exp >exponent){
 			throw new IllegalArgumentException("Illegal exponent");
 		}
-		DiamondSquareMatrix smoothened = smoothen(SMOOTHENING_RADIUS);
+		Matrix<Integer> smoothened = smoothen(SMOOTHENING_RADIUS);
 		int nchunks = (int)Math.pow(4, exp);
 		int q ; //Chunks in a row
 		q = (int)Math.sqrt(nchunks);
 		int side ; //Side of each chunk
-		side = (dimX()-1)/q ;
+		side = (m.dimX()-1)/q ;
 		Matrix<Chunk> ans = new Matrix<Chunk>(q,q);
 		for (int i=0;i<q;i++){
 			for(int j=0;j<q;j++){
 			ans.set(i,j,new Chunk(side));
 			}
 		}
-		for (int i=0;i<dimX()-1;i++){
-			for (int j=0;j<dimX()-1;j++){
+		for (int i=0;i<m.dimX()-1;i++){
+			for (int j=0;j<m.dimX()-1;j++){
 				//The vertices of the two triangles to add
 				Vector3 c1,c2,c3,c4;
 				c1 = new Vector3(i,j,smoothened.get(i,j));

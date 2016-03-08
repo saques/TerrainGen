@@ -39,6 +39,10 @@ public class Matrix<N> implements Iterable<N> {
 		}
 	}
 	
+	public Matrix(int dim){
+		this(dim,dim);
+	}
+	
 	public int dimX(){
 		return dimX;
 	}
@@ -54,7 +58,7 @@ public class Matrix<N> implements Iterable<N> {
 		return matrix.get(i).get(j) ;
 	}
 	
-	protected void set(int i,int j,N val){
+	public void set(int i,int j,N val){
 		if (outOfBounds(i, j)){
 			throw new IllegalArgumentException("Wrong indices");
 		}
@@ -64,6 +68,19 @@ public class Matrix<N> implements Iterable<N> {
 	protected boolean outOfBounds(int i,int j){
 		if (i<0 || i>=dimX || j<0 || j>=dimY) {
 			return true ;
+		}
+		return false ;
+	}
+	
+	public boolean contains (Object o){
+		for (N n : this){
+			if (n == null) {
+				if (o == null) {
+					return true ;
+				}
+			} else if (n.equals(o)) {
+				return true ;
+			}
 		}
 		return false ;
 	}

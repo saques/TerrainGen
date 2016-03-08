@@ -3,7 +3,6 @@ package com.mygdx.vc;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
@@ -12,8 +11,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder.VertexInfo;
@@ -50,22 +51,25 @@ public class MainScreen implements Screen {
 		camController = new CameraInputController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(8,4,35,200,15,28);
+		world = new World(9,4,35,28,48,69);
+		
+		Environment e = new Environment() ;
+		e.add(new DirectionalLight().set(Color.WHITE, new Vector3(0,0,-0.1f)));
 		
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
 		for (Chunk c : m){
 			Mesh ans ;
-			build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal, GL20.GL_TRIANGLES);
-			Set<Cell> cells = c.getCells();
+			build.begin(Usage.Position | Usage.ColorPacked | Usage.Normal , GL20.GL_TRIANGLES);
+			Matrix<Cell> cells = c.getCells();
 			for (Cell t: cells) {
 				VertexInfo p1,p2,p3,p4,p5,p6 ;
 				p1 = new VertexInfo() ;
-				p1.setPos(t.getp1()).setCol(getColor(t.getp1())).setNor(t.gett1().getNormal());
+				p1.setPos(t.getp1()).setCol(getColor(t.getp1())).setNor(t.gett1().getNormal().scl(-1));
 				p2 = new VertexInfo() ;
-				p2.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(t.gett1().getNormal());
+				p2.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(t.gett1().getNormal().scl(-1));
 				p3 = new VertexInfo() ;
-				p3.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(t.gett1().getNormal());
+				p3.setPos(t.getp3()).setCol(getColor(t.getp3())).setNor(t.gett1().getNormal().scl(-1));
 				p4 = new VertexInfo() ;
 				p4.setPos(t.getp2()).setCol(getColor(t.getp2())).setNor(t.gett2().getNormal()) ;
 				p5 = new VertexInfo() ;
@@ -80,6 +84,7 @@ public class MainScreen implements Screen {
 			meshes.add(ans);
 			Renderable r = new Renderable();
 			r.meshPart.mesh=ans ;
+			r.environment = e ;
 			r.meshPart.offset=0;
 			r.meshPart.size=ans.getNumIndices();
 			r.meshPart.primitiveType = GL20.GL_TRIANGLES;
@@ -122,7 +127,7 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-	   	
+		
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 	    batch.begin(camera);
 	    for (Renderable r : renderables){

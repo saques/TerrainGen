@@ -28,6 +28,7 @@ public class Triangle {
 		this.avgHeight = (p1.z + p2.z + p3.z)/3 ;
 		
 	}
+	
 	public Triangle (List<Vector3> vertices){
 		if (vertices.size() != 3){
 			throw new IllegalArgumentException("Wrong number of "
