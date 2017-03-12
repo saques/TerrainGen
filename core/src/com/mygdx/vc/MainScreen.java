@@ -27,6 +27,7 @@ import com.model.map.Chunk;
 import com.model.map.World;
 import com.model.math.Cell;
 import com.model.math.Matrix;
+import com.sun.scenario.effect.light.PointLight;
 
 public class MainScreen implements Screen {
 	
@@ -35,7 +36,7 @@ public class MainScreen implements Screen {
 	private World world ;
 	private List<Mesh> meshes = new LinkedList<Mesh>();
 	private List<Renderable> renderables = new LinkedList<Renderable>() ;
-	private CameraInputController camController ;
+	private FirstPersonCameraController camController ;
 	private ModelBatch batch ;
 	
 	public MainScreen() {	
@@ -48,14 +49,13 @@ public class MainScreen implements Screen {
 		camera.far = 1000f;
 		camera.update();
 		viewport = new ScreenViewport(camera);
-		camController = new CameraInputController(camera);
+		camController = new FirstPersonCameraController(camera);
 	    Gdx.input.setInputProcessor(camController);
 		
-		world = new World(9,4,35,28,48,69);
+		world = new World(8,4,110,10,200,1);
 		
 		Environment e = new Environment() ;
-		e.add(new DirectionalLight().set(Color.WHITE, new Vector3(0,0,-0.1f)));
-		
+		e.add(new DirectionalLight().set(Color.WHITE, new Vector3(0,0,-0.5f)));
 		Matrix<Chunk> m = world.getChunks() ;
 		MeshBuilder build = new MeshBuilder() ;
 		for (Chunk c : m){
